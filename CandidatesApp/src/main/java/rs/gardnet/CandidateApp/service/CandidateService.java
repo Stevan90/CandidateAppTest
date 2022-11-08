@@ -1,5 +1,7 @@
 package rs.gardnet.CandidateApp.service;
 
+import java.util.List;
+
 import rs.gardnet.CandidateApp.model.Candidate;
 import rs.gardnet.CandidateApp.model.Response;
 
@@ -11,5 +13,5 @@ public interface CandidateService {
 	
 	public Candidate getCandidate(int id);
 	
-	public Candidate[] getAllCandidates();
+	public List<Candidate> getAllCandidates();
 }

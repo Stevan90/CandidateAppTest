@@ -58,6 +58,7 @@ public class CandidateServlet extends HttpServlet {
 				insertCandidate(request, response);
 			} catch (Exception e) {
 				e.printStackTrace();
+				errorPage(request, response, "Insert Candidate Error");
 			}
 			break;
 		case "/delete":
@@ -65,6 +66,7 @@ public class CandidateServlet extends HttpServlet {
 				deleteCandidate(request, response);
 			} catch (SQLException e) {
 				e.printStackTrace();
+				errorPage(request, response, "Delete Candidate Error");
 			}
 			break;
 		case "/edit":
@@ -72,6 +74,7 @@ public class CandidateServlet extends HttpServlet {
 				showEditForm(request, response);
 			} catch (SQLException e) {
 				e.printStackTrace();
+				errorPage(request, response, "Edit Candidate Error");
 			}
 			break;
 		case "/update":
@@ -79,10 +82,15 @@ public class CandidateServlet extends HttpServlet {
 				updateCandidate(request, response);
 			} catch (SQLException | ParseException e) {
 				e.printStackTrace();
+				errorPage(request, response, "Edit Candidate Error");
 			}
 			break;
 		case "/download":
-			downloadCSV(request, response);
+			try {
+				downloadCSV(request, response);
+			} catch (Exception e) {
+				errorPage(request, response, "Download Error");
+			}
 			break;
 		default:
 			// handle list
@@ -90,6 +98,7 @@ public class CandidateServlet extends HttpServlet {
 				listCandidates(request, response);
 			} catch (SQLException e) { 
 				e.printStackTrace();
+				errorPage(request, response, "Database Error");
 			}
 			
 			break;
@@ -103,7 +112,7 @@ public class CandidateServlet extends HttpServlet {
 	}
 
 	private void insertCandidate(HttpServletRequest request, HttpServletResponse response)
-			throws SQLException, IOException, ParseException {
+			throws SQLException, IOException, ParseException, ServletException {
 		String firstName = request.getParameter("firstName");
 		String lastName = request.getParameter("lastName");
 		String jmbg = request.getParameter("jmbg");
@@ -114,28 +123,36 @@ public class CandidateServlet extends HttpServlet {
 		Boolean employed = Boolean.parseBoolean(request.getParameter("employed"));
 		Date modificationDate = Date.from(LocalDate.now().atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());// new SimpleDateFormat("dd/MM/yyyy").parse(request.getParameter("modificationDate"));
 		Candidate candidate = new Candidate(firstName, lastName, jmbg, birthYear, email, phone, note, employed, modificationDate);
-		candidateDAO.insertCandidate(candidate);
-		response.sendRedirect("list");
+		if(candidateDAO.insertCandidate(candidate))
+			response.sendRedirect("list");
+		else
+			errorPage(request, response, "Insert Candidate Error");
 	}
 	
 	private void deleteCandidate(HttpServletRequest request, HttpServletResponse response)
-			throws SQLException, IOException {
+			throws SQLException, IOException, ServletException {
 		int id = Integer.parseInt(request.getParameter("id"));
-		candidateDAO.deleteCandidate(id);
-		response.sendRedirect("list");
+		if(candidateDAO.deleteCandidate(id))
+			response.sendRedirect("list");
+		else
+			errorPage(request, response, "Delete Candidate Error");
 	}
 	
 	private void showEditForm(HttpServletRequest request, HttpServletResponse response)
 			throws SQLException, ServletException, IOException {
 		int id = Integer.parseInt(request.getParameter("id"));
 		Candidate candidate = candidateDAO.selectCandidate(id);
-		RequestDispatcher dispatcher = request.getRequestDispatcher("candidate-form.jsp");
-		request.setAttribute("candidate", candidate);
-		dispatcher.forward(request, response);
+		if(candidate == null) {
+			errorPage(request, response, "Edit Candidate Error");
+		} else {
+			RequestDispatcher dispatcher = request.getRequestDispatcher("candidate-form.jsp");
+			request.setAttribute("candidate", candidate);
+			dispatcher.forward(request, response);
+		}
 	}
 	
 	private void updateCandidate(HttpServletRequest request, HttpServletResponse response)
-			throws SQLException, IOException, ParseException {
+			throws SQLException, IOException, ParseException, ServletException {
 		int id = Integer.parseInt(request.getParameter("id"));
 		String firstName = request.getParameter("firstName");
 		String lastName = request.getParameter("lastName");
@@ -148,23 +165,28 @@ public class CandidateServlet extends HttpServlet {
 		Date modificationDate = Date.from(LocalDate.now().atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());// new SimpleDateFormat("dd/MM/yyyy").parse(request.getParameter("modificationDate"));
 		
 		Candidate candidate = new Candidate(id, firstName, lastName, jmbg, birthYear, email, phone, note, employed, modificationDate);
-		candidateDAO.updateCandidate(candidate);
-		response.sendRedirect("list");
+		if(candidateDAO.updateCandidate(candidate))
+			response.sendRedirect("list");
+		else
+			errorPage(request, response, "Edit Candidate Error");
 	}
 	
 	private void listCandidates(HttpServletRequest request, HttpServletResponse response)
-			throws SQLException, IOException, ServletException {
+			throws SQLException, IOException, ServletException, NullPointerException {
 		List<Candidate> listCandidates = candidateDAO.selectAllCandidates();
-		request.setAttribute("listCandidates", listCandidates);
-		RequestDispatcher dispatcher = request.getRequestDispatcher("candidate-list.jsp");
-		dispatcher.forward(request, response);
+		if(listCandidates == null) {
+			errorPage(request, response, "Database Error");
+		} else {
+			request.setAttribute("listCandidates", listCandidates);
+			RequestDispatcher dispatcher = request.getRequestDispatcher("candidate-list.jsp");
+			dispatcher.forward(request, response);
+		}
 	}
 	
 	private void downloadCSV(HttpServletRequest request, HttpServletResponse response) 
-			throws IOException {
+			throws IOException, NullPointerException {
 		int BUFFER = 1024;
-		response.setContentType("application/octet-stream");
-		response.setHeader("Content-Disposition", "attachment;filename=" + "\"" + "candidates" + ".csv\"");
+		
 		response.setBufferSize(BUFFER);
 		StringBuilder string = new StringBuilder();
 		List<Candidate> candidates = candidateDAO.selectAllCandidates();
@@ -191,7 +213,15 @@ public class CandidateServlet extends HttpServlet {
 			string.append("\n");
 		}
 		byte bytes[] = string.toString().getBytes();
+		response.setContentType("application/octet-stream");
+		response.setHeader("Content-Disposition", "attachment;filename=" + "\"" + "candidates" + ".csv\"");
 	    response.getOutputStream().write(bytes);
 	    response.setContentLength(bytes.length);
+	}
+	
+	public void errorPage(HttpServletRequest request, HttpServletResponse response, String em) throws ServletException, IOException {
+		request.setAttribute("errorMessage", em);
+		RequestDispatcher dispatcher = request.getRequestDispatcher("ErrorPage.jsp");
+		dispatcher.forward(request, response);
 	}
 }

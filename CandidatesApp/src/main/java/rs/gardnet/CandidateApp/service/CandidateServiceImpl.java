@@ -36,7 +36,7 @@ public class CandidateServiceImpl implements CandidateService{
 	@Consumes(MediaType.APPLICATION_JSON)
 	public Response addCandidate(Candidate candidate) {
 		Response response = new Response();
-		System.out.println(candidate.toString());
+		//System.out.println(candidate.toString());
 		try {
 			candidate.setModificationDate(Date.from(LocalDate.now().atStartOfDay().atZone(ZoneId.systemDefault()).toInstant()));
 			if(candidate.getId() == 0) {
@@ -67,11 +67,16 @@ public class CandidateServiceImpl implements CandidateService{
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response deleteCandidate(@javax.ws.rs.PathParam("id") int id) {
 		Response response = new Response();
-		System.out.println(id);
+		//System.out.println(id);
 		try {
-			candidateDAO.deleteCandidate(id);
-			response.setStatus(true);
-			response.setMessage("Candidate Deleted Successfully");
+			
+			response.setStatus(candidateDAO.deleteCandidate(id));
+			if(response.isStatus()) {
+				response.setMessage("Candidate Deleted Successfully");
+			} else {
+				response.setMessage("Candidate Doesn't Exists");
+			}
+			
 			return response;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -98,15 +103,8 @@ public class CandidateServiceImpl implements CandidateService{
 	@GET
 	@Path("/getAll")
 	@Produces(MediaType.APPLICATION_JSON)
-	public Candidate[] getAllCandidates() {
-		List<Candidate> cl = candidateDAO.selectAllCandidates();
-		Candidate[] candidates = new Candidate[cl.size()];
-		int i = 0;
-		for(Candidate c : cl) {
-			candidates[i] = c;
-			i++;
-		}
-		return candidates;
+	public List<Candidate> getAllCandidates() {
+		return candidateDAO.selectAllCandidates();
 	}
 
 }

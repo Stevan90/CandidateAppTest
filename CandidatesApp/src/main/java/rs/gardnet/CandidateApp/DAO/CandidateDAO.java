@@ -23,22 +23,14 @@ public class CandidateDAO {
 	private static final String DELETE_CANDIDATE_SQL = "DELETE FROM candidates WHERE id = ?;";
 	private static final String UPDATE_CANDIDATE_SQL = "UPDATE candidates SET first_name = ?, last_name = ?, jmbg = ?, birth_year = ?, email = ?, phone = ?, note = ?, employed = ?, modification_date = ? WHERE id = ?;";
 	
-	protected Connection getConnection() {
+	protected Connection getConnection() throws ClassNotFoundException, SQLException {
 		Connection connection = null;
-		try {
+		
 			
 			//Class.forName("com.mysql.jdbc.Driver");
 			Class.forName("org.postgresql.Driver");
 			connection = DriverManager.getConnection(url, username, password);
-		} catch (SQLException e) {
-			
-			e.printStackTrace();
-		} catch (ClassNotFoundException e) {
-			
-			e.printStackTrace();
-		}
 		
-		System.out.println("------------------------------------------");
 		
 		return connection;
 	}
@@ -94,6 +86,9 @@ public class CandidateDAO {
 			rowUpdated = preparedStatement.executeUpdate() > 0;
 			
 			connection.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+			rowUpdated = false;
 		}
 		
 		return rowUpdated;
@@ -127,8 +122,10 @@ public class CandidateDAO {
 					}
 					
 					connection.close();
-				} catch (SQLException e) {
+				} catch (Exception e) {
 					e.printStackTrace();
+					//If we don't find a candidate we send null
+					return null;
 				}
 				
 				return candidate;
@@ -141,7 +138,6 @@ public class CandidateDAO {
 		
 		try (Connection connection = getConnection();
 				PreparedStatement preparedStatement = connection.prepareStatement(SELECT_ALL_CANDIDATES);) {
-			System.out.println(preparedStatement);
 			
 			ResultSet rs = preparedStatement.executeQuery();
 			
@@ -160,8 +156,10 @@ public class CandidateDAO {
 			}
 			
 			connection.close();
-		} catch (SQLException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
+			//If we don't find a candidate we send null
+			return null;
 		}
 		
 		return candidates;
@@ -178,8 +176,9 @@ public class CandidateDAO {
 			rowDeleted = preparedStatement.executeUpdate() > 0;
 			
 			connection.close();
-		} catch (SQLException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
+			rowDeleted = false;
 		}
 		
 		return rowDeleted;

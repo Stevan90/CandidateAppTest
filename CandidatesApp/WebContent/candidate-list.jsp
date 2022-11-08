@@ -20,7 +20,7 @@
 				</div>
 
 				<ul class="navbar-nav">
-					<li><a href="<%=request.getContextPath()%>/list" class="nav-link">Users</a></li>
+					<li><a href="<%=request.getContextPath()%>/list" class="nav-link">Candidates</a></li>
 				</ul>
 			</nav>
 		</header>
@@ -36,7 +36,7 @@
 				
 				<div class="container text-left">
 
-					<a href="<%=request.getContextPath()%>/new" class="btn btn-success">Add New User</a>
+					<a href="<%=request.getContextPath()%>/new" class="btn btn-success">Add New Candidate</a>
 					<a href="<%=request.getContextPath()%>/download" class="btn btn-success">Download CSV</a>
 				</div>
 				<br>
@@ -70,7 +70,14 @@
 								<td><c:out value="${candidat.email}" /></td>
 								<td><c:out value="${candidat.phone}" /></td>
 								<td><c:out value="${candidat.note}" /></td>
-								<td><c:out value="${candidat.employed}" /></td>
+								
+								<c:if test="${candidat.employed}">
+									<td><c:out value="Employed" /></td>
+								</c:if>
+								<c:if test="${!candidat.employed}">
+									<td><c:out value="Not Employed" /></td>
+								</c:if>
+								
 								<td><c:out value="${candidat.modificationDate}" /></td>
 								<td><a href="edit?id=<c:out value='${candidat.id}' />">Edit</a>
 								&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <a
