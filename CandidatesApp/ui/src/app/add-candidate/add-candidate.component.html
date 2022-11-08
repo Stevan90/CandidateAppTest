@@ -1,0 +1,52 @@
+<mat-card>
+    <mat-card-title>Add New Candidate</mat-card-title>
+    <mat-card-content>
+        <form class="example-form" [formGroup]="addCandidateForm" (ngSubmit)="AddCandidate()">
+            <mat-form-field class="example-full-width" appearance="fill">
+                <mat-label>First Name</mat-label>
+                <input matInput placeholder="First Name" formControlName="firstName">
+            </mat-form-field>
+
+            <mat-form-field class="example-full-width" appearance="fill">
+                <mat-label>Last Name</mat-label>
+                <input matInput placeholder="Last Name" formControlName="lastName">
+            </mat-form-field>
+
+            <mat-form-field class="example-full-width" appearance="fill">
+                <mat-label>JMBG</mat-label>
+                <input matInput placeholder="JMBG" formControlName="jmbg">
+            </mat-form-field>
+
+            <mat-form-field class="example-full-width" appearance="fill">
+                <mat-label>Birth Year</mat-label>
+                <input matInput placeholder="1990" formControlName="birthYear">
+            </mat-form-field>
+
+            <mat-form-field class="example-full-width" appearance="fill">
+                <mat-label>Email</mat-label>
+                <input matInput placeholder="test@gmail.com" formControlName="email">
+            </mat-form-field>
+
+            <mat-form-field class="example-full-width" appearance="fill">
+                <mat-label>Phone</mat-label>
+                <input matInput  formControlName="phone" mask="000 / 00-00-009">
+            </mat-form-field>
+
+            <mat-form-field class="example-full-width" appearance="fill">
+                <mat-label>Note</mat-label>
+                <input matInput placeholder="Note" formControlName="note">
+            </mat-form-field>
+
+            <mat-form-field class="example-full-width" appearance="fill">
+                <mat-label>Employed</mat-label>
+                <input matInput [hidden]="true" placeholder="false" > 
+                <mat-checkbox formControlName="employed" style="margin-left: 50%; margin-right: 50%;"></mat-checkbox>
+            </mat-form-field>
+
+            <div>
+                <button mat-raised-button type="submit" color="primary">Save</button>
+                <a mat-raised-button color="accent" (click)="RedirectCandidate()">Cancel</a>
+            </div>
+        </form>
+    </mat-card-content>
+</mat-card>
